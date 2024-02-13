@@ -23,9 +23,12 @@
 ##        Plots                                                           ##
 ##        Raw data from SeaMoBB project                                   ##
 ############################################################################
+setwd("~/Documents/stats_again")
 
-
-
+library(tidyverse)
+library(ggplot2)
+library(pegas)
+library(BioStrings)
 
 ############## FIGURE 4: Plot pi per class
 df_pi <- read_csv("class_species_pi.csv")
@@ -61,6 +64,10 @@ ggsave("./plots/class_MOTU.png")
 occurrence <- read_csv("7_final_haplotable_pa.csv") # presence_absence
 unique(occurrence$species)
 occur <- occurrence %>% filter(inferred_spp == "Halisarca dujardini") # Select species here
+
+## Format data
+## Needed: dataframe with columns for haplo id, each location (population) containing frequency, and sequences.
+## Each row is a unique haplotype and contains info on its frequency
 # Pivot longer
 colnames(occur)
 occur <- occur %>% pivot_longer(9:200, names_to = "sample_location", values_to = "reads")
@@ -91,6 +98,9 @@ haploSeq # inspect
 haplonet <- haploNet(haploSeq) # create haplonet
 haplonet # inspect
 
+## Create matrices describing each haplotype's location (population) for colors and 
+## abundance (frequency) for pegas plotting
+## See pegas vignette for info: https://emmanuelparadis.github.io/pegas/PlotHaploNet.pdf
 # Location matrix for pies
 colnames(pop2)
 location <- pop2 %>% ungroup %>% select(haplotype, contains("LIV"), contains("PAL"), contains("CRO"))
@@ -109,16 +119,17 @@ abundance <- abundance[,-1, drop = FALSE]
 abundance <- as.matrix(abundance, drop = FALSE)
 
 # Pie colors function
-pie_colors <- c("#ffca8b",  "#8fbaba", "#995ebc") # LIV PAL CRO
-attr(haplonet, "labels") # check order; should match for all three
-row.names(location)
-row.names(abundance)
+pie_colors <- c("#ffca8b",  "#8fbaba", "#995ebc") # LIV PAL CRO; edit here for other colors & add more if more populations
+attr(haplonet, "labels") # check order here,output from next two lines should match
+row.names(location) 
+row.names(abundance) 
+
 # Set options and plot
 setHaploNetOptions(link.type.alt = 0, haplotype.outer.color = 0,
-                   show.mutation = 2)
+                   show.mutation = 2) # see vignette for options
 plot(haplonet, pie = location, size = abundance, 
      labels = F, col = pie_colors, fast = TRUE, threshold = 0, legend = TRUE) 
-xy <- replot()
+xy <- replot() # if replotting
 replot(xy)
 
 
